@@ -7,5 +7,6 @@ from infrastructure.collect_data import run_collection
 if __name__ == '__main__':
     api = OandaApi()
 
-    instrumentCollection.LoadInstruments("./data")
-    run_collection(instrumentCollection, api)
+    # instrumentCollection.LoadInstruments("./data")
+    # run_collection(instrumentCollection, api)
+    run_ma_sim()
