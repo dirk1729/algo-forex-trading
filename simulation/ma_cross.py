@@ -1,6 +1,7 @@
 import pandas as pd
 import os.path
 from infrastructure.instrument_collection import instrumentCollection as ic
+from simulation.ma_excel import create_ma_res
 
 class MAResult:
     def __init__(self, df_trades, pairname, ma_l, ma_s, granularity):
@@ -10,7 +11,7 @@ class MAResult:
         self.ma_l = ma_l
         self.granularity = granularity
         self.result = self.result_ob()
-    
+
     def __repr__(self):
         return str(self.result)
 
@@ -31,7 +32,6 @@ class MAResult:
 BUY = 1
 SELL = -1
 NONE = 0
-
 get_ma_col = lambda x: f"MA_{x}"
 add_cross = lambda x: f"{x.ma_s}_{x.ma_l}"
 
@@ -61,6 +61,7 @@ def get_trades(df_analysis, instrument, granularity):
     df_trades["GAIN_C"] = df_trades["GAIN"].cumsum()
     return df_trades
 
+
 def assess_pair(price_data, ma_l, ma_s, instrument, granularity):
     df_analysis = price_data.copy()
     df_analysis["DELTA"] = df_analysis[ma_s] - df_analysis[ma_l]
@@ -79,9 +80,11 @@ def assess_pair(price_data, ma_l, ma_s, instrument, granularity):
     )
 
 def append_df_to_file(df, filename):
+
     if os.path.isfile(filename):
         fd = pd.read_pickle(filename)
         df = pd.concat([fd, df])
+
     df.reset_index(inplace=True, drop=True)
     df.to_pickle(filename)
     print(filename, df.shape)
@@ -99,20 +102,24 @@ def process_trades(results_list, filename):
     df = pd.concat([x.df_trades for x in results_list])
     append_df_to_file(df, filename)
 
-
 def process_results(results_list, filepath):
     process_macro(results_list, get_fullname(filepath, "ma_res"))
     process_trades(results_list, get_fullname(filepath, "ma_trades"))
-    # rl = [x.result for x in results_list]
-    # df = pd.DataFrame.from_dict(rl)
-    # print(df)
-    # print(results_list[0].df_trades.head(2))
+
+    #rl = [x.result for x in results_list]
+    #df = pd.DataFrame.from_dict(rl)
+    #print(df)
+    #print(results_list[0].df_trades.head(2))
+
 
 def analyse_pair(instrument, granularity, ma_long, ma_short, filepath):
+
     ma_list = set(ma_long + ma_short)
     pair = instrument.name
 
     price_data = load_price_data(pair, granularity, ma_list)
+    #print(pair)
+    #print(price_data.head(3))
 
     results_list = []
 
@@ -120,7 +127,7 @@ def analyse_pair(instrument, granularity, ma_long, ma_short, filepath):
         for ma_s in ma_short:
             if ma_l <= ma_s:
                 continue
-                
+
             ma_result = assess_pair(
                 price_data,
                 get_ma_col(ma_l),
@@ -128,15 +135,16 @@ def analyse_pair(instrument, granularity, ma_long, ma_short, filepath):
                 instrument,
                 granularity
             )
-            print(ma_result)
+            #print(ma_result)
             results_list.append(ma_result)
     process_results(results_list, filepath)
 
-def run_ma_sim(curr_list=["EUR", "USD"],
-               granularity=["H1", "H4"],
-               ma_long=[20,40,80,120,150],
-               ma_short=[10,20,30,40],
-               filepath="./data"):
+
+def run_ma_sim(curr_list=["CAD", "JPY", "GBP", "NZD"],
+                granularity=["H1"],
+                ma_long=[20,40],
+                ma_short=[10],
+                filepath="./data"):
     ic.LoadInstruments("./data")
     for g in granularity:
         for p1 in curr_list:
@@ -144,3 +152,12 @@ def run_ma_sim(curr_list=["EUR", "USD"],
                 pair = f"{p1}_{p2}"
                 if pair in ic.instruments_dict.keys():
                     analyse_pair(ic.instruments_dict[pair], g, ma_long, ma_short, filepath)
+        create_ma_res(g)
+        
+        
+        
+
+
+
+
+
