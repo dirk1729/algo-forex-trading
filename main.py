@@ -9,4 +9,4 @@ if __name__ == '__main__':
     # instrumentCollection.LoadInstruments("./data")
     # instrumentCollection.PrintInstruments()
     
-    run_ma_sim(curr_list=["EUR", "USD", "JPY"])
+    run_ma_sim(curr_list=["EUR", "USD", "JPY", "AUD", "GBP", "CAD"])
