@@ -4,15 +4,17 @@ HANGING_MAN_BODY = 15.0
 HANGING_MAN_HEIGHT = 75.0
 SHOOTING_STAR_HEIGHT = 25.0
 SPINNING_TOP_MIN = 40.0
-SPINNNNG_TOP_MAX = 60.0
+SPINNING_TOP_MAX = 60.0
 MARUBOZU = 98.0
 ENGULFING_FACTOR = 1.1
+
+MORNING_STAR_PREV2_BODY = 90.0
+MORNING_STAR_PREV_BODY = 10.0
+
 TWEEZER_BODY = 15.0
 TWEEZER_HL = 0.01
 TWEEZER_TOP_BODY = 40.0
 TWEEZER_BOTTOM_BODY = 60.0
-MORNING_STAR_PREV2_BODY = 90.0
-MONRING_START_PREV_BODY = 10.0
 
 apply_marubozu = lambda x: x.body_perc > MARUBOZU
 
@@ -29,7 +31,7 @@ def apply_shooting_star(row):
     return False
 
 def apply_spinning_top(row):
-    if row.body_top_perc < SPINNNNG_TOP_MAX:
+    if row.body_top_perc < SPINNING_TOP_MAX:
         if row.body_bottom_perc > SPINNING_TOP_MIN:
             if row.body_perc < HANGING_MAN_BODY:
                 return True
@@ -47,7 +49,7 @@ def apply_tweezer_top(row):
             if abs(row.low_change) < TWEEZER_HL and abs(row.high_change) < TWEEZER_HL:
                 if row.body_top_perc < TWEEZER_TOP_BODY:
                     return True
-    return False
+    return False               
 
 def apply_tweezer_bottom(row):
     if abs(row.body_size_change) < TWEEZER_BODY:
@@ -55,11 +57,12 @@ def apply_tweezer_bottom(row):
             if abs(row.low_change) < TWEEZER_HL and abs(row.high_change) < TWEEZER_HL:
                 if row.body_bottom_perc > TWEEZER_BOTTOM_BODY:
                     return True
-    return False
+    return False     
+
 
 def apply_morning_star(row, direction=1):
     if row.body_perc_prev_2 > MORNING_STAR_PREV2_BODY:
-        if row.body_perc_prev < MONRING_START_PREV_BODY:
+        if row.body_perc_prev < MORNING_STAR_PREV_BODY:
             if row.direction == direction and row.direction_prev_2 != direction:
                 if direction == 1:
                     if row.mid_c > row.mid_point_prev_2:
@@ -67,7 +70,6 @@ def apply_morning_star(row, direction=1):
                 else:
                     if row.mid_c < row.mid_point_prev_2:
                         return True
-                    
     return False
 
 def apply_candle_props(df: pd.DataFrame):
@@ -78,10 +80,10 @@ def apply_candle_props(df: pd.DataFrame):
     direction = [1 if x >= 0 else -1 for x in direction]
     full_range = df_an.mid_h - df_an.mid_l
     body_perc = (body_size / full_range) * 100
-    body_lower = df_an[['mid_c', 'mid_o']].min(axis=1)
-    body_upper = df_an[['mid_c', 'mid_o']].max(axis=1)
+    body_lower = df_an[['mid_c','mid_o']].min(axis=1)
+    body_upper = df_an[['mid_c','mid_o']].max(axis=1)
     body_bottom_perc = ((body_lower - df_an.mid_l) / full_range) * 100
-    body_top_perc = 100 - ((df_an.mid_h -body_upper) / full_range) * 100
+    body_top_perc = 100 - ((( df_an.mid_h - body_upper) / full_range) * 100)
 
     mid_point = full_range / 2 + df_an.mid_l
 
@@ -106,6 +108,7 @@ def apply_candle_props(df: pd.DataFrame):
     df_an['direction_prev_2'] = df_an.direction.shift(2)
     df_an['body_perc_prev'] = df_an.body_perc.shift(1)
     df_an['body_perc_prev_2'] = df_an.body_perc.shift(2)
+
     return df_an
 
 def set_candle_patterns(df_an: pd.DataFrame):
